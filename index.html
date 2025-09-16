@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <!-- 
+        HEAD: O CENTRO DE CONTROLE TÉCNICO DA PÁGINA
+        Especialista: Aqui, configuramos os fundamentos para SEO, responsividade e design.
+        - Meta Tags: Essenciais para que os buscadores entendam o propósito da página. O título é direto e a descrição é otimizada para cliques.
+        - Bootstrap CDN: Usamos o framework Bootstrap para garantir um design mobile-first e responsivo sem esforço.
+        - Google Fonts & Font Awesome: Para uma tipografia limpa (Open Sans) e ícones de alta qualidade que melhoram a interface.
+        - CSS Customizado: Uma pequena seção <style> para aplicar a paleta de cores e animações que dão personalidade ao site.
+    -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de IMC com Sugestões Personalizadas</title>
+    <meta name="description" content="Calcule seu Índice de Massa Corporal (IMC) e receba sugestões personalizadas de dieta e exercícios para ganhar, manter ou perder peso de forma saudável.">
+    <meta name="keywords" content="calculadora imc, como calcular imc, ganhar massa, perder peso, dieta saudável, índice de massa corporal">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Google Fonts: Open Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome (para ícones) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        /* CSS Personalizado para identidade visual e UX */
+        :root {
+            --cor-principal: #4CAF50; /* Verde-saúde */
+            --cor-secundaria: #0d6efd; /* Azul-confiança */
+            --cor-alerta: #ffc107; /* Laranja-alerta */
+            --cor-perigo: #dc3545; /* Vermelho-perigo */
+        }
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f8f9fa;
+        }
+        /* No seu <style> dentro do <head> */
+        .hero {
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('fruta.webp') no-repeat center center;
+            background-size: cover;
+            color: white;
+        }
+        }
+        .calculator-card {
+            transition: all 0.3s ease;
+        }
+        .result-section {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            opacity: 0;
+            transform: translateY(20px);
+            height: 0;
+            overflow: hidden;
+        }
+        .result-section.show {
+            opacity: 1;
+            transform: translateY(0);
+            height: auto;
+        }
+        .accordion-button:not(.collapsed) {
+            color: white;
+            background-color: var(--cor-principal);
+        }
+        .imc-baixo-peso { border-left: 5px solid var(--cor-alerta); }
+        .imc-normal { border-left: 5px solid var(--cor-principal); }
+        .imc-sobrepeso { border-left: 5px solid var(--cor-alerta); }
+        .imc-obesidade { border-left: 5px solid var(--cor-perigo); }
+    </style>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8426308412005780"
+     crossorigin="anonymous"></script>
+<link rel="icon" href="favicon.jpg" type="image/jpeg">
+</head>
+<body>
+
+    <!-- HEADER/HERO: A PRIMEIRA IMPRESSÃO -->
+    <header class="hero py-5">
+        <div class="container text-center">
+            <h1 class="display-4 fw-bold">Calcule Seu IMC e Receba Dicas Personalizadas</h1>
+            <p class="lead my-3">Insira seus dados para descobrir seu Índice de Massa Corporal e obter um plano de ação para sua saúde.</p>
+            
+            <!-- Card da Calculadora -->
+            <div class="card shadow-lg p-4 mx-auto calculator-card" style="max-width: 600px; background-color: rgba(255,255,255,0.9);">
+                <form id="imcForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="weight" class="form-label fw-bold">Seu Peso (kg)</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-weight-hanging"></i></span>
+                                <input type="number" class="form-control" id="weight" placeholder="Ex: 70" required aria-label="Seu Peso em quilogramas">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                             <label for="height" class="form-label fw-bold">Sua Altura (cm)</label>
+                            <div class="input-group">
+                               <span class="input-group-text"><i class="fas fa-ruler-vertical"></i></span>
+                                <input type="number" class="form-control" id="height" placeholder="Ex: 175" required aria-label="Sua Altura em centímetros">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-success btn-lg fw-bold"><i class="fas fa-calculator me-2"></i>Calcular IMC</button>
+                        <button type="reset" class="btn btn-outline-secondary" id="resetBtn">Limpar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <main class="container my-5">
+        <!-- SEÇÃO DE RESULTADO: DADOS DINÂMICOS -->
+        <!-- Especialista: Esta seção é controlada via JS. Ela começa oculta e é preenchida e exibida após o cálculo, proporcionando uma experiência interativa. -->
+        <section id="result" class="result-section">
+            <div class="card shadow-sm">
+                <div class="card-header text-center bg-primary text-white">
+                    <h2 class="h4 mb-0">Seu Resultado</h2>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6 text-center">
+                            <h3 class="h5">Seu IMC é:</h3>
+                            <p id="imcValue" class="display-3 fw-bold">0.0</p>
+                            <p id="imcClassification" class="h4 fw-bold p-2 rounded">Sua Classificação</p>
+                        </div>
+                        <div class="col-md-6">
+                            <!-- Gráfico para visualização do IMC -->
+                            <canvas id="imcChart" aria-label="Gráfico de IMC"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO DE SUGESTÕES: CONTEÚDO PERSONALIZADO -->
+        <!-- Especialista: Apenas um destes blocos será exibido, com base no resultado do IMC. Isso cria a sensação de personalização e relevância para o usuário. -->
+        <section id="suggestions" class="result-section mt-4">
+            <div class="card shadow-sm">
+                <div class="card-header text-center bg-success text-white">
+                    <h2 class="h4 mb-0">Sugestões Para Você</h2>
+                </div>
+                <div class="card-body">
+                    <!-- Sugestões para Baixo Peso -->
+                    <div id="sugestao-baixo-peso" class="d-none">
+                        <h3 class="text-warning">Foco em Ganho de Massa Saudável</h3>
+                        <p>Seu IMC indica que você pode se beneficiar de um ganho de peso saudável. O objetivo é aumentar a massa muscular e não apenas a gordura.</p>
+                        <ul>
+                            <li><strong>Dieta Hipercalórica Nutritiva:</strong> Aumente a ingestão diária em 500-700 calorias. Foque em alimentos densos em nutrientes:
+                                <ul>
+                                    <li><strong>Proteínas:</strong> Frango, peixe, ovos, leguminosas e shakes de proteína.</li>
+                                    <li><strong>Gorduras Saudáveis:</strong> Abacate, azeite de oliva, nozes e sementes.</li>
+                                    <li><strong>Carboidratos Complexos:</strong> Batata doce, arroz integral, aveia e pão integral.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Exercícios de Força:</strong> Musculação é essencial. Foque em exercícios compostos como agachamento, levantamento terra e supino, 3-4 vezes por semana.</li>
+                            <li><strong>Dica de Ouro:</strong> Não pule refeições. Faça de 5 a 6 refeições menores ao longo do dia para manter um fluxo constante de nutrientes.</li>
+                        </ul>
+                    </div>
+                    <!-- Sugestões para Peso Normal -->
+                    <div id="sugestao-normal" class="d-none">
+                        <h3 class="text-success">Parabéns! Foco na Manutenção</h3>
+                        <p>Seu IMC está na faixa considerada saudável. O segredo agora é manter esse equilíbrio com hábitos consistentes.</p>
+                         <ul>
+                            <li><strong>Dieta Equilibrada:</strong> Continue com uma alimentação variada, rica em frutas, vegetais, proteínas magras e grãos integrais.</li>
+                            <li><strong>Atividade Física Regular:</strong> A recomendação da OMS é de 150 minutos de atividade aeróbica moderada (como caminhada rápida ou ciclismo) ou 75 minutos de atividade intensa (como corrida) por semana, combinados com 2 dias de fortalecimento muscular.</li>
+                            <li><strong>Dica de Ouro:</strong> Ouça seu corpo. Coma quando tiver fome e pare quando estiver satisfeito. A moderação é a chave.</li>
+                        </ul>
+                    </div>
+                    <!-- Sugestões para Sobrepeso -->
+                    <div id="sugestao-sobrepeso" class="d-none">
+                        <h3 class="text-warning">Foco em Perda de Peso Gradual</h3>
+                        <p>Seu IMC indica sobrepeso. Pequenas mudanças consistentes podem trazer grandes resultados para sua saúde e bem-estar.</p>
+                        <ul>
+                            <li><strong>Déficit Calórico Controlado:</strong> Reduza a ingestão diária em 300-500 calorias para uma perda de peso segura (0.5kg por semana). Evite dietas restritivas.
+                                <ul>
+                                    <li><strong>Priorize:</strong> Saladas, legumes, proteínas magras (peixe, frango) e muita água.</li>
+                                    <li><strong>Reduza:</strong> Açúcares, refrigerantes, frituras e carboidratos refinados (pão branco, massas).</li>
+                                </ul>
+                            </li>
+                            <li><strong>Combine Aeróbico e Força:</strong> Exercícios aeróbicos (corrida, natação, dança) queimam calorias, enquanto a musculação aumenta o metabolismo. Tente fazer 3-5 sessões por semana.</li>
+                            <li><strong>Dica de Ouro:</strong> Planeje suas refeições. Ter lanches saudáveis à mão evita que você recorra a opções industrializadas na hora da fome.</li>
+                        </ul>
+                    </div>
+                    <!-- Sugestões para Obesidade -->
+                    <div id="sugestao-obesidade" class="d-none">
+                        <h3 class="text-danger">Atenção à Saúde: Foco em Mudança de Estilo de Vida</h3>
+                        <p>Seu IMC está na faixa de obesidade, o que aumenta o risco de condições de saúde. É um ótimo momento para iniciar uma jornada de transformação com acompanhamento profissional.</p>
+                        <ul>
+                            <li><strong>Consulta Profissional é Crucial:</strong> Agende uma consulta com um médico e um nutricionista. Eles criarão um plano seguro e personalizado para você.</li>
+                            <li><strong>Dieta Estruturada:</strong> Siga um plano alimentar com déficit calórico, focado em comida de verdade e controle de porções.</li>
+                            <li><strong>Exercícios de Baixo Impacto:</strong> Comece com atividades que não sobrecarreguem as articulações, como caminhada, natação ou hidroginástica. A consistência é mais importante que a intensidade no início.</li>
+                            <li><strong>Alerta de Saúde:</strong> A obesidade está associada a riscos como diabetes tipo 2, hipertensão e doenças cardíacas. Cuidar do peso é cuidar do seu futuro.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- SEÇÃO EDUCACIONAL E FAQ -->
+        <section class="mt-5">
+            <h2 class="text-center mb-4 display-6">Entenda Mais Sobre o IMC</h2>
+            <div class="accordion" id="faqAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                            O que exatamente é o IMC?
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            O Índice de Massa Corporal (IMC) é uma medida internacional usada para avaliar se uma pessoa está no seu peso ideal. Ele é calculado dividindo o peso (em kg) pela altura ao quadrado (em m). É uma ferramenta de triagem simples e útil, mas não conta a história completa da sua saúde.
+                        </div>
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                            O IMC é preciso para atletas ou pessoas musculosas?
+                        </button>
+                    </h2>
+                    <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                           Não totalmente. O IMC não diferencia massa muscular de gordura. Como músculos são mais densos que gordura, atletas e pessoas com muita massa muscular podem ter um IMC na faixa de "Sobrepeso" mesmo sendo muito saudáveis. Nesses casos, outras medidas como percentual de gordura corporal são mais indicadas.
+                        </div>
+                    </div>
+                </div>
+                 <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                            Com que frequência devo calcular meu IMC?
+                        </button>
+                    </h2>
+                    <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                           Calcular uma vez por mês é suficiente para acompanhar o progresso. Focar em mudanças diárias de peso pode ser frustrante e enganoso. O mais importante é focar na consistência dos seus hábitos saudáveis.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER: INFORMAÇÕES FINAIS E DISCLAIMER -->
+    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-0">&copy; 2025 Calculadora de Saúde. Todos os direitos reservados.</p>
+            <p class="text-muted small mt-2"><strong>Disclaimer:</strong> Esta calculadora é uma ferramenta de estimativa e não substitui o aconselhamento de um profissional de saúde qualificado. Sempre consulte um médico ou nutricionista antes de iniciar qualquer dieta ou programa de exercícios.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts (Bootstrap e Chart.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // JAVASCRIPT: A LÓGICA INTERATIVA DA CALCULADORA
+        // Especialista: Todo o "cérebro" da aplicação está aqui.
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('imcForm');
+            const resultSection = document.getElementById('result');
+            const suggestionsSection = document.getElementById('suggestions');
+            const imcValueEl = document.getElementById('imcValue');
+            const imcClassificationEl = document.getElementById('imcClassification');
+            const resetBtn = document.getElementById('resetBtn');
+            const chartCanvas = document.getElementById('imcChart');
+            let imcChart = null; // Variável para armazenar a instância do gráfico
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault(); // Previne o recarregamento da página
+
+                // 1. Obter e validar os dados
+                const weight = parseFloat(document.getElementById('weight').value);
+                const height = parseFloat(document.getElementById('height').value);
+
+                if (isNaN(weight) || isNaN(height) || weight <= 0 || height <= 0) {
+                    alert('Por favor, insira valores válidos para peso e altura.');
+                    return;
+                }
+
+                // 2. Calcular o IMC
+                const heightInMeters = height / 100;
+                const imc = (weight / (heightInMeters * heightInMeters)).toFixed(1);
+
+                // 3. Determinar a classificação e as sugestões
+                let classification = '';
+                let classificationClass = '';
+                let suggestionId = '';
+
+                if (imc < 18.5) {
+                    classification = 'Baixo Peso';
+                    classificationClass = 'bg-warning text-dark';
+                    suggestionId = 'sugestao-baixo-peso';
+                } else if (imc >= 18.5 && imc <= 24.9) {
+                    classification = 'Peso Normal';
+                    classificationClass = 'bg-success text-white';
+                    suggestionId = 'sugestao-normal';
+                } else if (imc >= 25 && imc <= 29.9) {
+                    classification = 'Sobrepeso';
+                    classificationClass = 'bg-warning text-dark';
+                    suggestionId = 'sugestao-sobrepeso';
+                } else {
+                    classification = 'Obesidade';
+                    classificationClass = 'bg-danger text-white';
+                    suggestionId = 'sugestao-obesidade';
+                }
+
+                // 4. Exibir os resultados
+                imcValueEl.textContent = imc;
+                imcClassificationEl.textContent = classification;
+                imcClassificationEl.className = `h4 fw-bold p-2 rounded ${classificationClass}`;
+
+                // Esconde todas as sugestões e exibe apenas a correta
+                document.querySelectorAll('#suggestions > .card-body > div').forEach(el => el.classList.add('d-none'));
+                document.getElementById(suggestionId).classList.remove('d-none');
+                
+                // Mostra as seções de resultado e sugestões com animação
+                resultSection.classList.add('show');
+                suggestionsSection.classList.add('show');
+
+                // 5. Desenhar o gráfico
+                drawChart(parseFloat(imc));
+                
+                // Rola a página suavemente para a seção de resultado
+                resultSection.scrollIntoView({ behavior: 'smooth' });
+            });
+
+            resetBtn.addEventListener('click', function() {
+                // Esconde as seções de resultado
+                resultSection.classList.remove('show');
+                suggestionsSection.classList.remove('show');
+            });
+            
+            // Função para desenhar/atualizar o gráfico
+            function drawChart(imc) {
+                // Destroi o gráfico anterior se ele existir, para evitar sobreposição
+                if (imcChart) {
+                    imcChart.destroy();
+                }
+
+                const ctx = chartCanvas.getContext('2d');
+                imcChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Seu IMC'],
+                        datasets: [{
+                            label: 'Baixo Peso',
+                            data: [18.4],
+                            backgroundColor: 'rgba(255, 193, 7, 0.6)',
+                            borderWidth: 1
+                        }, {
+                            label: 'Peso Normal',
+                            data: [24.9 - 18.5],
+                             backgroundColor: 'rgba(76, 175, 80, 0.6)',
+                            borderWidth: 1
+                        }, {
+                            label: 'Sobrepeso',
+                            data: [29.9 - 25],
+                             backgroundColor: 'rgba(255, 193, 7, 0.6)',
+                            borderWidth: 1
+                        }, {
+                            label: 'Obesidade',
+                            data: [40 - 30], // Limite visual do gráfico
+                             backgroundColor: 'rgba(220, 53, 69, 0.6)',
+                            borderWidth: 1
+                        },
+                        // Dataset para a linha do IMC do usuário
+                        {
+                            type: 'line',
+                            label: 'Seu IMC',
+                            data: [imc],
+                            borderColor: '#0d6efd',
+                            borderWidth: 4,
+                            pointRadius: 10,
+                            pointBackgroundColor: '#0d6efd',
+                            fill: false,
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        scales: {
+                            x: {
+                                stacked: true,
+                                max: 40,
+                                title: { display: true, text: 'Valor do IMC' }
+                            },
+                            y: {
+                                stacked: true,
+                                display: false // Oculta o label 'Seu IMC' no eixo Y
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top',
+                            },
+                            tooltip: {
+                                enabled: false // Desabilita tooltips para um visual mais limpo
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
